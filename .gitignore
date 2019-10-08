@@ -1,0 +1,11 @@
+dist
+node_modules
+build
+coverage
+package-lock.json
+logs
+uploads
+logs/*
+uploads/*
+logs/**
+uploads/**
