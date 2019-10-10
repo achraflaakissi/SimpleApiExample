@@ -3,6 +3,7 @@ const crud = require("../../config/crud");
 const User = require("./user.model");
 const controller = require("./user.controller");
 const protect = require("../../middleware/routesProtect");
+const isAuthorize = require("../../middleware/isAuthorize");
 
 const router = Router();
 
@@ -10,14 +11,23 @@ const router = Router();
 
 router
   .route("/")
-  .get(protect, crud.controller(User).getMany)
-  .post(crud.controller(User).createOne);
+  .get(
+    [protect, isAuthorize(["ADMIN", "SUPERADMIN"])],
+    crud.controller(User).getMany
+  )
+  .post(
+    [protect, isAuthorize(["ADMIN", "SUPERADMIN"])],
+    crud.controller(User).createOne
+  );
 
 router
   .route("/:id")
-  .get(controller.singIn)
-  .delete(crud.controller(User).removeOne);
+  .delete(
+    [protect, isAuthorize(["ADMIN", "SUPERADMIN"])],
+    crud.controller(User).removeOne
+  );
 
 router.route("/singUp").post(controller.singUp);
+router.route("/singIn").post(controller.singIn);
 
 module.exports = router;
