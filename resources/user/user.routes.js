@@ -19,8 +19,13 @@ router
     [protect, isAuthorize(["ADMIN", "SUPERADMIN"])],
     crud.controller(User).createOne
   );
-
 router
+  .route("/temptoken")
+  .post(
+    controller.getTempToken
+  );
+
+  router
   .route("/:id")
   .delete(
     [protect, isAuthorize(["ADMIN", "SUPERADMIN"])],

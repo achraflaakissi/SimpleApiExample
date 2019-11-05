@@ -1,6 +1,7 @@
 const Joi = require("@hapi/joi");
 const User = require("./user.model");
 const auth = require("../../config/auth");
+
 exports.singIn = async (req, res) => {
   const schema = Joi.object().keys({
     email: Joi.string()
@@ -36,8 +37,9 @@ exports.singIn = async (req, res) => {
       err.statusCode = 401;
       throw err;
     }
-    const token = auth.newToken(user);
-    res.status(201).json({ token });
+    const token = await auth.newToken(user);
+    const tokentemp = await auth.newTempToken(token);
+    res.status(201).json({ token , tokentemp });
   } catch (err) {
     if (!err.statusCode) {
       console.log(err.message);
@@ -71,8 +73,9 @@ exports.singUp = async (req, res) => {
       }
     });
     const newUser = await User.create({ ...req.body });
-    const token = auth.newToken(newUser);
-    res.status(201).json({ data: newUser, token });
+    const token = await auth.newToken(newUser);
+    const tokentemp = await auth.newTempToken(token);
+    res.status(201).json({ data: newUser, token, tokentemp });
   } catch (err) {
     if (!err.statusCode) {
       console.log(err.message);
@@ -82,3 +85,35 @@ exports.singUp = async (req, res) => {
     }
   }
 };
+exports.getTempToken = async(req,res) => {
+  const schema = Joi.object().keys({
+    token: Joi.string()
+      .required()
+      .trim()
+  });
+  try {
+    Joi.validate(req.body, schema, (error, result) => {
+      if (error) {
+        const err = new Error(error.message);
+        err.statusCode = 403;
+        throw err;
+      }
+    });
+    //
+    const payload = await auth.verifyToken(req.body.token);
+    if (!payload) {
+      const error = new Error("Not authenticated token incorrect.");
+      error.statusCode = 401;
+      throw error;
+    }
+    res.status(201).json({ data: payload });
+    //
+  } catch (err) {
+    if (!err.statusCode) {
+      console.log(err.message);
+      res.status(500).end();
+    } else {
+      res.status(err.statusCode).json({ message: err.message });
+    }
+  }
+}
